@@ -1,85 +1,76 @@
-/* =====================================================
-   MOBILE NAVIGATION
-===================================================== */
+// ===============================
+// MOBILE MENU
+// ===============================
 
 const menuButton = document.getElementById("menuButton");
 const nav = document.getElementById("nav");
+
+function closeMenu() {
+    if (!nav || !menuButton) {
+        return;
+    }
+
+    nav.classList.remove("open");
+    menuButton.setAttribute("aria-expanded", "false");
+
+    const icon = menuButton.querySelector("i");
+
+    if (icon) {
+        icon.classList.remove("fa-xmark");
+        icon.classList.add("fa-bars");
+    }
+}
 
 if (menuButton && nav) {
 
     menuButton.addEventListener("click", function () {
 
-        nav.classList.toggle("open");
+        const isOpen = nav.classList.toggle("open");
+
+        menuButton.setAttribute(
+            "aria-expanded",
+            String(isOpen)
+        );
 
         const icon = menuButton.querySelector("i");
 
         if (icon) {
-
-            if (nav.classList.contains("open")) {
-
-                icon.classList.remove("fa-bars");
-                icon.classList.add("fa-xmark");
-
-            } else {
-
-                icon.classList.remove("fa-xmark");
-                icon.classList.add("fa-bars");
-
-            }
-
+            icon.classList.toggle("fa-bars", !isOpen);
+            icon.classList.toggle("fa-xmark", isOpen);
         }
-
     });
 
 
-    /* Close menu after clicking a navigation link */
+    // Close menu when a navigation link is clicked
 
     const navLinks = nav.querySelectorAll("a");
 
     navLinks.forEach(function (link) {
 
         link.addEventListener("click", function () {
-
-            nav.classList.remove("open");
-
-            const icon = menuButton.querySelector("i");
-
-            if (icon) {
-
-                icon.classList.remove("fa-xmark");
-                icon.classList.add("fa-bars");
-
-            }
-
+            closeMenu();
         });
-
     });
-
 }
 
 
-
-/* =====================================================
-   CURRENT YEAR
-===================================================== */
+// ===============================
+// CURRENT YEAR
+// ===============================
 
 const yearElement = document.getElementById("year");
 
 if (yearElement) {
-
     yearElement.textContent = new Date().getFullYear();
-
 }
 
 
-
-/* =====================================================
-   ACTIVE NAVIGATION
-===================================================== */
+// ===============================
+// ACTIVE NAVIGATION
+// ===============================
 
 const sections = document.querySelectorAll("section[id]");
 const navigationLinks = document.querySelectorAll("nav a");
-
 
 function updateActiveNavigation() {
 
@@ -87,18 +78,16 @@ function updateActiveNavigation() {
 
     sections.forEach(function (section) {
 
-        const sectionTop = section.offsetTop - 180;
-        const sectionHeight = section.offsetHeight;
+        const sectionTop = section.offsetTop - 160;
+        const sectionBottom =
+            sectionTop + section.offsetHeight;
 
         if (
             window.scrollY >= sectionTop &&
-            window.scrollY < sectionTop + sectionHeight
+            window.scrollY < sectionBottom
         ) {
-
-            currentSection = section.getAttribute("id");
-
+            currentSection = section.id;
         }
-
     });
 
 
@@ -106,28 +95,31 @@ function updateActiveNavigation() {
 
         link.classList.remove("active");
 
-        const linkTarget = link.getAttribute("href");
+        const target = link.getAttribute("href");
 
-        if (linkTarget === "#" + currentSection) {
-
+        if (target === "#" + currentSection) {
             link.classList.add("active");
-
         }
-
     });
-
 }
 
+window.addEventListener(
+    "scroll",
+    updateActiveNavigation,
+    { passive: true }
+);
 
-window.addEventListener("scroll", updateActiveNavigation);
+window.addEventListener(
+    "resize",
+    updateActiveNavigation
+);
 
 updateActiveNavigation();
 
 
-
-/* =====================================================
-   SMOOTH SCROLL
-===================================================== */
+// ===============================
+// SMOOTH SCROLL
+// ===============================
 
 navigationLinks.forEach(function (link) {
 
@@ -135,66 +127,100 @@ navigationLinks.forEach(function (link) {
 
         const targetId = link.getAttribute("href");
 
-        if (
-            targetId &&
-            targetId.startsWith("#")
-        ) {
-
-            const targetElement =
-                document.querySelector(targetId);
-
-            if (targetElement) {
-
-                event.preventDefault();
-
-                targetElement.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start"
-                });
-
-            }
-
+        if (!targetId || !targetId.startsWith("#")) {
+            return;
         }
 
-    });
+        const targetElement =
+            document.querySelector(targetId);
 
+        if (!targetElement) {
+            return;
+        }
+
+        event.preventDefault();
+
+        targetElement.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+    });
 });
 
 
-
-/* =====================================================
-   IMAGE CHECK
-===================================================== */
+// ===============================
+// IMAGE ERROR CHECK
+// ===============================
 
 const profileImage =
     document.querySelector(".photo-container img");
 
+const projectImage =
+    document.querySelector(".project-visual img");
 
 if (profileImage) {
 
     profileImage.addEventListener("error", function () {
 
         console.error(
-            "Profile image not found. Make sure your photo is here: assets/profile.jpg"
+            "Profile image not found: assets/profile.jpg"
         );
-
     });
-
 }
-
-
-const projectImage =
-    document.querySelector(".project-visual img");
-
 
 if (projectImage) {
 
     projectImage.addEventListener("error", function () {
 
         console.error(
-            "Project image not found. Make sure your image is here: assets/intrusion-detection.png"
+            "Project image not found: assets/intrusion-detection.png"
         );
-
     });
-
 }
+
+
+// ===============================
+// BUTTON CLICK FEEDBACK
+// ===============================
+
+const buttons = document.querySelectorAll(
+    ".button, .linkedin-button, .project-link"
+);
+
+buttons.forEach(function (button) {
+
+    button.addEventListener("click", function () {
+
+        button.style.transform = "scale(0.97)";
+
+        setTimeout(function () {
+            button.style.transform = "";
+        }, 150);
+    });
+});
+
+
+// ===============================
+// CLOSE MENU ON RESIZE
+// ===============================
+
+window.addEventListener("resize", function () {
+
+    if (window.innerWidth > 900) {
+        closeMenu();
+    }
+
+    updateActiveNavigation();
+});
+
+
+// ===============================
+// CLOSE MENU WITH ESCAPE
+// ===============================
+
+document.addEventListener("keydown", function (event) {
+
+    if (event.key === "Escape") {
+        closeMenu();
+    }
+});
